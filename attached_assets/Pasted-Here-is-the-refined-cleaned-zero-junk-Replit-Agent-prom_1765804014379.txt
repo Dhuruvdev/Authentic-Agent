@@ -1,0 +1,314 @@
+Here is the refined, cleaned, zero-junk Replit Agent prompt.
+No motivational talk. No AI hype. No questions. No filler.
+Just a hard spec that either works or fails.
+
+
+---
+
+🔒 REPLIT AGENT PROMPT — NothingHide (Strict, Legal, Real)
+
+Role
+
+Senior cybersecurity engineer and full-stack architect.
+Build only systems that are technically honest, legally compliant, and auditable.
+No simulated hacking. No fabricated intelligence. No unverifiable claims.
+
+
+---
+
+🧠 Project Definition
+
+Name: NothingHide
+Domain: Cybersecurity / Digital Identity Exposure
+Purpose:
+Identify where a user’s digital identity is publicly exposed or at risk using only lawful, open, and verifiable methods.
+
+The system must never claim access to private, restricted, leaked, or illegal data.
+
+
+---
+
+🎯 Core Constraints (Non-Negotiable)
+
+No dark web access
+
+No password collection or processing
+
+No private or leaked databases
+
+No fake “real-time” scans
+
+No AI claims without deterministic logic
+
+
+Allowed:
+
+Public APIs
+
+Open datasets
+
+Lawful scraping of publicly accessible pages
+
+Explicit limitation disclosure
+
+Risk estimation, not certainty
+
+
+If something cannot be checked legally, state it clearly in the output.
+
+
+---
+
+🏗️ System Architecture
+
+1️⃣ Input Classification — NH-Signal
+
+Accept inputs:
+
+Email
+
+Username
+
+Image URL
+
+
+Validate format.
+Reject unsafe or unsupported input.
+Classify input type with confidence.
+
+Output
+
+{
+  "type": "email | username | image",
+  "confidence": 0.00
+}
+
+
+---
+
+2️⃣ Orchestration Engine — NH-Chain
+
+Select modules based on input type.
+Execute real backend logic sequentially or in parallel.
+Stream progress events to frontend using SSE or WebSockets.
+
+Example Chain Events
+
+[
+  "Input classified as email",
+  "Querying public breach indexes",
+  "Evaluating reuse indicators",
+  "Aggregating exposure signals"
+]
+
+No artificial delays.
+Every event must correspond to actual processing.
+
+
+---
+
+3️⃣ Exposure Intelligence Modules
+
+🔹 Breach Intelligence — NH-Breach
+
+Use only open breach datasets or legally permitted APIs
+
+Never store raw personal data
+
+Return metadata only
+
+
+Output
+
+{
+  "found": true,
+  "sources": ["Public Dataset A"],
+  "severity": "high"
+}
+
+
+---
+
+🔹 Identity Correlation — NH-Correlate
+
+Check username reuse across public platforms
+
+Use availability checks and similarity heuristics
+
+No login-gated or private scraping
+
+
+Output
+
+{
+  "matches": ["github", "instagram"],
+  "risk": "medium"
+}
+
+
+---
+
+🔹 Media Exposure Risk — NH-FaceRisk
+
+Generate perceptual hashes
+
+Use lawful reverse-image or similarity APIs
+
+Assess exposure risk only
+
+
+Mandatory disclaimer in output:
+
+> “This does not confirm misuse. It estimates public exposure risk.”
+
+
+
+
+---
+
+4️⃣ Verdict Engine — NH-Verdict
+
+Aggregate all signals into:
+
+Exposure score (0–100)
+
+Risk level: Low / Medium / High
+
+Plain-language explanation
+
+
+No technical jargon in final output.
+
+
+---
+
+5️⃣ Guidance System — NH-Response
+
+Generate prioritized, actionable steps:
+
+Account security
+
+Privacy tightening
+
+Platform-specific actions
+
+
+Example
+
+1. Change passwords
+
+
+2. Enable two-factor authentication
+
+
+3. Report impersonation
+
+
+4. Restrict profile visibility
+
+
+
+
+---
+
+6️⃣ Transparency Layer — NH-Explain
+
+Every result must include:
+
+What was checked
+
+What was not checked
+
+Data sources used
+
+Legal scope statement
+
+
+Mandatory Statement
+
+> “NothingHide analyzes only publicly accessible information.
+No private systems or restricted data were accessed.”
+
+
+
+
+---
+
+🎨 Frontend Requirements
+
+Single-page application
+
+Minimal, neutral design (no hacker visuals)
+
+One input field
+
+Real-time chain feed
+
+No fake terminals or animations
+
+
+
+---
+
+🧪 Demo Mode
+
+Explicit demo toggle
+
+Clearly labeled “Demo Data”
+
+Demo data must never mix with real scans
+
+
+
+---
+
+🧯 Legal & Ethical Guardrails
+
+Display permanently:
+
+> “NothingHide does not access the dark web, private databases, or confidential systems.
+This tool provides exposure awareness, not forensic proof.”
+
+
+
+Fail the build if any module violates this.
+
+
+---
+
+🛠️ Implementation Notes
+
+Backend: Node.js or Python
+
+Frontend: Vanilla JS or React
+
+Streaming: SSE or WebSockets
+
+Storage: Minimal, ephemeral only
+
+Logging: Privacy-safe, non-identifying
+
+
+
+---
+
+✅ Objective
+
+Deliver an MVP that:
+
+Works without deception
+
+Explains its limits clearly
+
+Respects the law
+
+Builds trust through transparency
+
+
+If a feature cannot be implemented legally, explain the limitation instead of simulating it.
+
+
+---
+
+This spec is not flexible.
+If something feels impressive but isn’t real, it doesn’t belong here.
