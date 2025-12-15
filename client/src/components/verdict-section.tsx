@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Shield, ShieldCheck, ArrowRight } from "lucide-react";
+import { SpotlightCard } from "@/components/reactbits/spotlight-card";
 import type { Verdict, Guidance } from "@shared/schema";
 
 interface VerdictSectionProps {
@@ -60,7 +61,7 @@ function CategoryIcon({ category }: { category: string }) {
 export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
   return (
     <div className="space-y-6" data-testid="verdict-section">
-      <Card className="overflow-hidden">
+      <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.15)" className="overflow-hidden">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Exposure Assessment</CardTitle>
         </CardHeader>
@@ -105,10 +106,10 @@ export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
             </div>
           )}
         </CardContent>
-      </Card>
+      </SpotlightCard>
 
       {guidance.recommendations.length > 0 && (
-        <Card data-testid="guidance-section">
+        <SpotlightCard data-testid="guidance-section" spotlightColor="rgba(34, 197, 94, 0.15)">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Recommended Actions</CardTitle>
           </CardHeader>
@@ -135,7 +136,7 @@ export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
               ))}
             </ol>
           </CardContent>
-        </Card>
+        </SpotlightCard>
       )}
     </div>
   );

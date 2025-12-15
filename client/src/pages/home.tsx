@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -8,8 +8,14 @@ import { ChainFeed } from "@/components/chain-feed";
 import { ResultsDisplay } from "@/components/results-display";
 import { VerdictSection } from "@/components/verdict-section";
 import { TransparencyLayer } from "@/components/transparency-layer";
+import { DecryptedText } from "@/components/reactbits/decrypted-text";
+import { ShinyText } from "@/components/reactbits/shiny-text";
 import { Moon, Sun, Shield, ExternalLink } from "lucide-react";
 import type { ChainEvent, ScanResult } from "@shared/schema";
+
+const DitherBackground = lazy(() => 
+  import("@/components/reactbits/dither-background").then(m => ({ default: m.DitherBackground }))
+);
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -93,8 +99,17 @@ export default function Home() {
   }, [isDemo]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <div className="min-h-screen bg-background/90 relative">
+      <Suspense fallback={null}>
+        <DitherBackground 
+          waveColor={[0.15, 0.15, 0.2]} 
+          waveSpeed={0.03} 
+          waveAmplitude={0.2}
+          colorNum={6}
+          pixelSize={3}
+        />
+      </Suspense>
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Shield className="w-6 h-6 text-primary" />
@@ -134,11 +149,21 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-12">
         <section className="text-center space-y-4">
           <h1 className="text-4xl font-semibold tracking-tight">
-            Discover Your Digital Exposure
+            <DecryptedText 
+              text="Discover Your Digital Exposure" 
+              animateOn="view"
+              speed={40}
+              maxIterations={15}
+              className="text-foreground"
+              encryptedClassName="text-primary/70"
+            />
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Find out where your email, username, or image appears online. 
-            Transparent analysis using only publicly accessible data.
+            <ShinyText 
+              text="Find out where your email, username, or image appears online."
+              speed={4}
+            />
+            {" "}Transparent analysis using only publicly accessible data.
           </p>
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
             <Shield className="w-4 h-4" />
