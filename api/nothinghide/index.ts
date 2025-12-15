@@ -17,3 +17,9 @@ export {
   verifyEmailDomain, 
   generateEmailVariations 
 } from "./services/scraper";
+export {
+  recordRequest,
+  getRealTimeMetrics,
+  getRequestTimeline,
+  getErrorAnalysis
+} from "./services/analytics";

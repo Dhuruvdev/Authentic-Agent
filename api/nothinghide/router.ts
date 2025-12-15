@@ -20,6 +20,15 @@ import {
   getActiveJobs
 } from "./services/orchestrator";
 import { verifyEmailDomain, generateEmailVariations, httpRequest } from "./services/scraper";
+import { 
+  recordRequest, 
+  getRealTimeMetrics, 
+  getRequestTimeline, 
+  getErrorAnalysis,
+  sha256ForAnalytics,
+  incrementActiveConnections,
+  decrementActiveConnections
+} from "./services/analytics";
 
 const router = Router();
 
@@ -107,6 +116,48 @@ function requireAdminKey(req: Request, res: Response, next: NextFunction) {
 const publicRateLimit = rateLimit(100, 60000);
 const sensitiveRateLimit = rateLimit(10, 60000);
 const adminRateLimit = rateLimit(5, 60000);
+
+function analyticsMiddleware(req: Request, res: Response, next: NextFunction) {
+  const startTime = Date.now();
+  let recorded = false;
+  
+  const isSSE = req.path.includes('/analytics/live');
+  
+  if (!isSSE) {
+    incrementActiveConnections();
+  }
+  
+  const recordMetric = (aborted: boolean = false) => {
+    if (recorded) return;
+    recorded = true;
+    
+    if (!isSSE) {
+      decrementActiveConnections();
+    }
+    
+    if (isSSE) return;
+    
+    const responseTime = Date.now() - startTime;
+    const ipHash = sha256ForAnalytics(req.ip || req.socket.remoteAddress || 'unknown');
+    
+    recordRequest({
+      endpoint: req.path,
+      method: req.method,
+      statusCode: aborted ? 499 : res.statusCode,
+      responseTimeMs: responseTime,
+      timestamp: Date.now(),
+      ipHash,
+      userAgent: req.get('user-agent'),
+    });
+  };
+  
+  res.on('finish', () => recordMetric(false));
+  res.on('close', () => recordMetric(true));
+  
+  next();
+}
+
+router.use(analyticsMiddleware);
 
 async function ensureDbInitialized() {
   if (!dbInitialized) {
@@ -464,6 +515,49 @@ router.post("/initialize", requireAdminKey, adminRateLimit, async (_req: Request
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
+});
+
+router.get("/analytics/realtime", async (_req: Request, res: Response) => {
+  const metrics = getRealTimeMetrics();
+  res.json(metrics);
+});
+
+router.get("/analytics/timeline", async (req: Request, res: Response) => {
+  const minutes = parseInt(req.query.minutes as string) || 5;
+  const timeline = getRequestTimeline(Math.min(60, Math.max(1, minutes)));
+  res.json({
+    period: `${minutes} minutes`,
+    timeline,
+  });
+});
+
+router.get("/analytics/errors", async (_req: Request, res: Response) => {
+  const errors = getErrorAnalysis();
+  res.json({
+    totalErrors: errors.reduce((sum, e) => sum + e.count, 0),
+    errors,
+  });
+});
+
+router.get("/analytics/live", async (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  const sendMetrics = () => {
+    const metrics = getRealTimeMetrics();
+    res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+  };
+  
+  sendMetrics();
+  
+  const interval = setInterval(sendMetrics, 2000);
+  
+  req.on('close', () => {
+    clearInterval(interval);
+    res.end();
+  });
 });
 
 export { router as nothingHideRouter, ensureDbInitialized };
