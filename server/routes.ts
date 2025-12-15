@@ -243,27 +243,5 @@ export async function registerRoutes(
     }
   });
 
-  // Demo scan endpoint
-  app.post("/api/scan/demo", async (req, res) => {
-    const { input } = req.body;
-    
-    if (!input || typeof input !== "string") {
-      return res.status(400).json({ error: "Input is required" });
-    }
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
-
-    try {
-      await performDemoScan(input.trim(), res);
-    } catch (error) {
-      console.error("Demo scan error:", error);
-      sendSSEEvent(res, "event", { event: createEvent("system", "An error occurred", "error") });
-      res.end();
-    }
-  });
-
   return httpServer;
 }

@@ -1,7 +1,5 @@
 import { useState, useCallback, Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useTheme } from "@/components/theme-provider";
 import { ScanInput } from "@/components/scan-input";
 import { ChainFeed } from "@/components/chain-feed";
@@ -10,7 +8,7 @@ import { VerdictSection } from "@/components/verdict-section";
 import { TransparencyLayer } from "@/components/transparency-layer";
 import { DecryptedText } from "@/components/reactbits/decrypted-text";
 import { ShinyText } from "@/components/reactbits/shiny-text";
-import { Moon, Sun, Shield, ExternalLink } from "lucide-react";
+import { Moon, Sun, Shield, Database } from "lucide-react";
 import type { ChainEvent, ScanResult } from "@shared/schema";
 
 const DitherBackground = lazy(() => 
@@ -22,7 +20,6 @@ export default function Home() {
   const [isScanning, setIsScanning] = useState(false);
   const [chainEvents, setChainEvents] = useState<ChainEvent[]>([]);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
 
   const handleScan = useCallback(async (input: string) => {
     setIsScanning(true);
@@ -30,8 +27,7 @@ export default function Home() {
     setScanResult(null);
 
     try {
-      const endpoint = isDemo ? "/api/scan/demo" : "/api/scan";
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input }),
@@ -96,7 +92,7 @@ export default function Home() {
     } finally {
       setIsScanning(false);
     }
-  }, [isDemo]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background/90 relative">
@@ -117,23 +113,6 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="demo-mode"
-                checked={isDemo}
-                onCheckedChange={setIsDemo}
-                data-testid="switch-demo"
-              />
-              <Label htmlFor="demo-mode" className="text-sm cursor-pointer">
-                Demo
-              </Label>
-              {isDemo && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded">
-                  DEMO DATA
-                </span>
-              )}
-            </div>
-            
             <Button
               variant="ghost"
               size="icon"
@@ -216,15 +195,10 @@ export default function Home() {
               <span>NothingHide - Digital Identity Exposure Analysis</span>
             </div>
             <div className="flex items-center gap-4">
-              <a
-                href="https://haveibeenpwned.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                Powered by HIBP
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex items-center gap-1">
+                <Database className="w-3 h-3" />
+                <span>Self-Hosted Breach Database</span>
+              </div>
             </div>
           </div>
         </div>
