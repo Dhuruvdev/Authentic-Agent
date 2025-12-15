@@ -110,7 +110,7 @@ function DitherPlane({
       uEnableMouseInteraction: { value: enableMouseInteraction },
       uMouseRadius: { value: mouseRadius },
     }),
-    []
+    [waveSpeed, waveFrequency, waveAmplitude, waveColor, colorNum, pixelSize, enableMouseInteraction, mouseRadius, size.width, size.height]
   );
 
   useFrame((state, delta) => {
@@ -118,6 +118,7 @@ function DitherPlane({
       const material = meshRef.current.material as THREE.ShaderMaterial;
       material.uniforms.uTime.value += delta;
       material.uniforms.uMouse.value.set(mouse.current.x, mouse.current.y);
+      material.uniforms.uResolution.value.set(size.width, size.height);
     }
   });
 

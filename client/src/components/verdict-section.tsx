@@ -1,4 +1,4 @@
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Shield, ShieldCheck, ArrowRight } from "lucide-react";
 import { SpotlightCard } from "@/components/reactbits/spotlight-card";
@@ -62,7 +62,8 @@ export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
   return (
     <div className="space-y-6" data-testid="verdict-section">
       <SpotlightCard spotlightColor="rgba(139, 92, 246, 0.15)" className="overflow-hidden">
-        <CardHeader className="pb-4">
+        <Card className="border-0 bg-transparent">
+          <CardHeader className="pb-4">
           <CardTitle className="text-lg">Exposure Assessment</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -106,11 +107,13 @@ export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
             </div>
           )}
         </CardContent>
+        </Card>
       </SpotlightCard>
 
       {guidance.recommendations.length > 0 && (
         <SpotlightCard data-testid="guidance-section" spotlightColor="rgba(34, 197, 94, 0.15)">
-          <CardHeader className="pb-4">
+          <Card className="border-0 bg-transparent">
+            <CardHeader className="pb-4">
             <CardTitle className="text-lg">Recommended Actions</CardTitle>
           </CardHeader>
           <CardContent>
@@ -136,6 +139,7 @@ export function VerdictSection({ verdict, guidance }: VerdictSectionProps) {
               ))}
             </ol>
           </CardContent>
+          </Card>
         </SpotlightCard>
       )}
     </div>

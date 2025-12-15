@@ -1,4 +1,4 @@
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Shield, Users, Image, ChevronDown, AlertTriangle, CheckCircle, Info } from "lucide-react";
@@ -32,7 +32,8 @@ function BreachCard({ result }: { result: BreachResult }) {
 
   return (
     <SpotlightCard data-testid="result-breach" spotlightColor="rgba(239, 68, 68, 0.15)">
-      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+      <Card className="border-0 bg-transparent">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-md bg-muted">
             <Shield className="w-5 h-5" />
@@ -103,6 +104,7 @@ function BreachCard({ result }: { result: BreachResult }) {
           </div>
         )}
       </CardContent>
+      </Card>
     </SpotlightCard>
   );
 }
@@ -113,7 +115,8 @@ function CorrelationCard({ result }: { result: CorrelationResult }) {
 
   return (
     <SpotlightCard data-testid="result-correlation" spotlightColor="rgba(234, 179, 8, 0.15)">
-      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+      <Card className="border-0 bg-transparent">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-md bg-muted">
             <Users className="w-5 h-5" />
@@ -170,6 +173,7 @@ function CorrelationCard({ result }: { result: CorrelationResult }) {
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
+      </Card>
     </SpotlightCard>
   );
 }
@@ -177,7 +181,8 @@ function CorrelationCard({ result }: { result: CorrelationResult }) {
 function ImageRiskCard({ result }: { result: ImageRiskResult }) {
   return (
     <SpotlightCard data-testid="result-image" spotlightColor="rgba(59, 130, 246, 0.15)">
-      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+      <Card className="border-0 bg-transparent">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-md bg-muted">
             <Image className="w-5 h-5" />
@@ -231,6 +236,7 @@ function ImageRiskCard({ result }: { result: ImageRiskResult }) {
           <p className="text-xs text-muted-foreground italic">{result.disclaimer}</p>
         </div>
       </CardContent>
+      </Card>
     </SpotlightCard>
   );
 }
