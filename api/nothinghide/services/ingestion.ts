@@ -140,7 +140,9 @@ export async function importPasswords(data: PasswordImportData): Promise<{ succe
 }
 
 export async function initializeBreachDatabase(): Promise<void> {
-  console.log("[NothingHide] Initializing breach database from real sources...");
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  
+  console.log("[NothingHide] Initializing breach database...");
 
   const existingCount = db.select({ count: sql<number>`count(*)` }).from(breachSources).get();
   
@@ -149,6 +151,14 @@ export async function initializeBreachDatabase(): Promise<void> {
     return;
   }
 
+  if (!isDevelopment) {
+    console.log("[NothingHide] Production mode: Skipping reference data seeding.");
+    console.log("[NothingHide] Use admin endpoints to import real breach data.");
+    return;
+  }
+
+  console.log("[NothingHide] Development mode: Seeding reference breach metadata...");
+  
   const breaches = await scrapeBreachDirectory();
   
   for (const breach of breaches) {
@@ -163,7 +173,7 @@ export async function initializeBreachDatabase(): Promise<void> {
     });
   }
 
-  console.log("[NothingHide] Syncing password hashes from Pwned Passwords API...");
+  console.log("[NothingHide] Syncing password hashes from Pwned Passwords API (k-anonymity)...");
   
   const commonPrefixes = ["00000", "21BD1", "A94A8", "5BAA6", "7C4A8"];
   
@@ -185,7 +195,7 @@ export async function initializeBreachDatabase(): Promise<void> {
     }
   }
 
-  console.log("[NothingHide] Breach database initialization complete!");
+  console.log("[NothingHide] Development seed complete. Use admin endpoints to import production data.");
 }
 
 export async function seedDemoData(): Promise<void> {

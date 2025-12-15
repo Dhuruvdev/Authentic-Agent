@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { initializeDatabase } from "./db";
 import { 
   checkEmailBreach, 
@@ -24,6 +24,89 @@ import { verifyEmailDomain, generateEmailVariations, httpRequest } from "./servi
 const router = Router();
 
 let dbInitialized = false;
+
+const rateLimitStore: Map<string, { count: number; resetAt: number }> = new Map();
+const MAX_RATE_LIMIT_ENTRIES = 10000;
+
+function pruneRateLimitStore(): number {
+  const now = Date.now();
+  let pruned = 0;
+  for (const [key, record] of rateLimitStore) {
+    if (now > record.resetAt) {
+      rateLimitStore.delete(key);
+      pruned++;
+    }
+  }
+  return pruned;
+}
+
+function evictOldestEntries(count: number) {
+  const entries = Array.from(rateLimitStore.entries())
+    .sort((a, b) => a[1].resetAt - b[1].resetAt);
+  
+  for (let i = 0; i < Math.min(count, entries.length); i++) {
+    rateLimitStore.delete(entries[i][0]);
+  }
+}
+
+setInterval(pruneRateLimitStore, 60000);
+
+function rateLimit(maxRequests: number, windowMs: number) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const key = req.ip || req.socket.remoteAddress || "unknown";
+    const now = Date.now();
+    
+    const record = rateLimitStore.get(key);
+    if (record) {
+      if (now > record.resetAt) {
+        rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+        return next();
+      }
+      
+      if (record.count >= maxRequests) {
+        return res.status(429).json({ 
+          error: "Too many requests",
+          retryAfter: Math.ceil((record.resetAt - now) / 1000)
+        });
+      }
+      
+      record.count++;
+      return next();
+    }
+    
+    if (rateLimitStore.size >= MAX_RATE_LIMIT_ENTRIES) {
+      const pruned = pruneRateLimitStore();
+      if (pruned === 0 && rateLimitStore.size >= MAX_RATE_LIMIT_ENTRIES) {
+        evictOldestEntries(1000);
+      }
+    }
+    
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    next();
+  };
+}
+
+function requireAdminKey(req: Request, res: Response, next: NextFunction) {
+  const adminKey = process.env.NOTHINGHIDE_ADMIN_KEY;
+  
+  if (!adminKey) {
+    return res.status(503).json({ 
+      error: "Admin endpoints are disabled. Set NOTHINGHIDE_ADMIN_KEY environment variable to enable." 
+    });
+  }
+  
+  const providedKey = req.headers["x-admin-key"] || req.query.adminKey;
+  
+  if (providedKey !== adminKey) {
+    return res.status(401).json({ error: "Invalid or missing admin key" });
+  }
+  
+  next();
+}
+
+const publicRateLimit = rateLimit(100, 60000);
+const sensitiveRateLimit = rateLimit(10, 60000);
+const adminRateLimit = rateLimit(5, 60000);
 
 async function ensureDbInitialized() {
   if (!dbInitialized) {
@@ -74,7 +157,7 @@ router.get("/stats", async (_req: Request, res: Response) => {
   res.json(stats);
 });
 
-router.post("/check-email", async (req: Request, res: Response) => {
+router.post("/check-email", publicRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { email, enrich } = req.body;
@@ -108,7 +191,7 @@ router.post("/check-email", async (req: Request, res: Response) => {
   res.json(result);
 });
 
-router.post("/check-password", async (req: Request, res: Response) => {
+router.post("/check-password", publicRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { password, hash, prefix, live } = req.body;
@@ -152,7 +235,7 @@ router.post("/check-password", async (req: Request, res: Response) => {
   res.json(result);
 });
 
-router.post("/check-password/range", async (req: Request, res: Response) => {
+router.post("/check-password/range", publicRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { prefix } = req.body;
@@ -172,7 +255,7 @@ router.post("/check-password/range", async (req: Request, res: Response) => {
   res.type("text/plain").send(rangeText);
 });
 
-router.post("/check-password/live", async (req: Request, res: Response) => {
+router.post("/check-password/live", sensitiveRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { password } = req.body;
@@ -191,7 +274,7 @@ router.post("/check-password/live", async (req: Request, res: Response) => {
   });
 });
 
-router.post("/email/enrich", async (req: Request, res: Response) => {
+router.post("/email/enrich", sensitiveRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { email } = req.body;
@@ -218,7 +301,7 @@ router.post("/email/enrich", async (req: Request, res: Response) => {
   });
 });
 
-router.post("/orchestrate/full", async (_req: Request, res: Response) => {
+router.post("/orchestrate/full", requireAdminKey, adminRateLimit, async (_req: Request, res: Response) => {
   await ensureDbInitialized();
   
   console.log("[NothingHide API] Starting full orchestration...");
@@ -237,7 +320,7 @@ router.post("/orchestrate/full", async (_req: Request, res: Response) => {
   });
 });
 
-router.post("/orchestrate/sync-breaches", async (_req: Request, res: Response) => {
+router.post("/orchestrate/sync-breaches", requireAdminKey, adminRateLimit, async (_req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const result = await syncBreachData();
@@ -248,7 +331,7 @@ router.post("/orchestrate/sync-breaches", async (_req: Request, res: Response) =
   });
 });
 
-router.post("/orchestrate/sync-passwords/:prefix", async (req: Request, res: Response) => {
+router.post("/orchestrate/sync-passwords/:prefix", requireAdminKey, adminRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { prefix } = req.params;
@@ -266,12 +349,12 @@ router.post("/orchestrate/sync-passwords/:prefix", async (req: Request, res: Res
   });
 });
 
-router.get("/orchestrate/jobs", async (_req: Request, res: Response) => {
+router.get("/orchestrate/jobs", requireAdminKey, async (_req: Request, res: Response) => {
   const jobs = getActiveJobs();
   res.json({ jobs });
 });
 
-router.get("/orchestrate/jobs/:jobId", async (req: Request, res: Response) => {
+router.get("/orchestrate/jobs/:jobId", requireAdminKey, async (req: Request, res: Response) => {
   const { jobId } = req.params;
   const job = getJobStatus(jobId);
   
@@ -282,7 +365,7 @@ router.get("/orchestrate/jobs/:jobId", async (req: Request, res: Response) => {
   res.json(job);
 });
 
-router.post("/import/breach", async (req: Request, res: Response) => {
+router.post("/import/breach", requireAdminKey, adminRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { name, domain, breachDate, description, dataClasses, pwnCount, emails } = req.body;
@@ -312,7 +395,7 @@ router.post("/import/breach", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/import/passwords", async (req: Request, res: Response) => {
+router.post("/import/passwords", requireAdminKey, adminRateLimit, async (req: Request, res: Response) => {
   await ensureDbInitialized();
   
   const { passwords, hashes, breachName } = req.body;
@@ -339,7 +422,7 @@ router.post("/import/passwords", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/curl", async (req: Request, res: Response) => {
+router.post("/curl", requireAdminKey, adminRateLimit, async (req: Request, res: Response) => {
   const { url, method, headers, body, timeout } = req.body;
   
   if (!url || typeof url !== "string") {
@@ -366,7 +449,7 @@ router.post("/curl", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/initialize", async (_req: Request, res: Response) => {
+router.post("/initialize", requireAdminKey, adminRateLimit, async (_req: Request, res: Response) => {
   try {
     initializeDatabase();
     await initializeBreachDatabase();
